@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+  <html>
+      <head>
+          <title>NASA Space APPs Challenge - Space scrapers</title>
+          <link rel="stylesheet" type="text/css" href="css/main.css">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+      </head>
+      <body>
+        <script type="text/javascript">
+            let type = "WebGL"
+            if(!PIXI.utils.isWebGLSupported()){
+              type = "canvas"
+            }
+        
+            PIXI.utils.sayHello(type)
+
+            //Create a Pixi Application
+            let app = new PIXI.Application({ 
+                width: 256,         // default: 800
+                height: 256,        // default: 600
+                antialias: true,    // default: false
+                transparent: false, // default: false
+                resolution: 1       // default: 1
+            }
+            );
+            app.renderer.autoResize = true;
+            app.renderer.view.style.position = "absolute";
+            app.renderer.view.style.display = "block";
+            app.renderer.autoResize = true;
+            app.renderer.resize(window.innerWidth, window.innerHeight);
+
+            /* Mouse interaction */
+            // const interactionManager = new PIXI.interaction.InteractionManager(app.renderer);
+            // interactionManager
+            //     .on('mousedown', onTouch)
+            //     .on('touchstart', onTouch)
+                // .on('mouseup', onTouch)
+                // .on('mouseupoutside', onTouch);
+
+            // function onTouch(e) {
+            //     app.renderer.plugins.interaction.mouse.global
+            // }
+                
+            PIXI.loader
+                .add("images/ships/rocket1.svg")
+                .load(setup);
+
+            function setup() {
+                ship = new PIXI.Sprite(PIXI.loader.resources["images/ships/rocket1.svg"].texture);
+                ship.x = 50
+                ship.y = 50
+                ship.anchor.set(0.5, 0.5)
+                ship.width = 64;
+                ship.height = 64;
+                // ship.rotation = 0.25 * Math.PI;
+                app.stage.addChild(ship);
+                
+                 left = keyboard("ArrowLeft"),
+                    up = keyboard("ArrowUp"),
+                    right = keyboard("ArrowRight"),
+                    down = keyboard("ArrowDown");
+
+                left.press = () => {
+                    //Change the cat's velocity when the key is pressed
+                    ship.angle--;
+                    // ship.vy = 0;
+                };
+                
+                //Left arrow key `release` method
+                left.release = () => {
+                    //If the left arrow has been released, and the right arrow isn't down,
+                    //and the cat isn't moving vertically:
+                    //Stop the cat
+                    if (!right.isDown && ship.vy === 0) {
+                        ship.vx = 0;
+                    }
+                };
+
+                //Up
+                up.press = () => {
+                    ship.vy = -5;
+                    ship.vx = 0;
+                };
+                up.release = () => {
+                    if (!down.isDown && ship.vx === 0) {
+                        ship.vy = 0;
+                    }
+                };
+
+                //Right
+                right.press = () => {
+                    ship.angle++
+                };
+                right.release = () => {
+                    if (!left.isDown && ship.vy === 0) {
+                        ship.vx = 0;
+                    }
+                };
+
+                //Down
+                down.press = () => {
+                    ship.vy = 5;
+                    ship.vx = 0;
+                };
+                down.release = () => {
+                    if (!up.isDown && ship.vx === 0) {
+                        ship.vy = 0;
+                    }
+                };
+                state = play;
+                app.ticker.add(delta => gameLoop(delta));
+            }
+
+            function gameLoop(delta){
+
+                //Move the cat 1 pixel 
+                
+                state(delta);
+            }
+
+            function play(delta) {
+                //Move the cat 1 pixel to the right each frame
+                ship.vx = 1
+                // ship.x += 1;
+                // let left = keyboard("ArrowLeft"),
+                //     up = keyboard("ArrowUp"),
+                //     right = keyboard("ArrowRight"),
+                //     down = keyboard("ArrowDown");
+                    // console.log(left)
+                if(right.isDown)
+                    ship.angle++
+                if(left.isDown)
+                    ship.angle--
+            }
+
+            function move(obj) {
+
+            }
+
+
+            // function move(object, distance) {
+            //     object.x = object.x + distance * Math.cos(object.rotation);
+            //     object.y = object.y + distance * Math.sin(object.rotation);
+            // }
+
+            //Add the canvas that Pixi automatically created for you to the HTML document
+            document.body.appendChild(app.view);
+            // document
+
+
+            function keyboard(value) {
+                let key = {};
+                key.value = value;
+                key.isDown = false;
+                key.isUp = true;
+                key.press = undefined;
+                key.release = undefined;
+                //The `downHandler`
+                key.downHandler = event => {
+                    if (event.key === key.value) {
+                    if (key.isUp && key.press) key.press();
+                    key.isDown = true;
+                    key.isUp = false;
+                    // event.preventDefault();
+                    }
+                };
+
+                //The `upHandler`
+                key.upHandler = event => {
+                    if (event.key === key.value) {
+                    if (key.isDown && key.release) key.release();
+                    key.isDown = false;
+                    key.isUp = true;
+                    // event.preventDefault();
+                    }
+                };
+
+                //Attach event listeners
+                const downListener = key.downHandler.bind(key);
+                const upListener = key.upHandler.bind(key);
+                
+                window.addEventListener(
+                    "keydown", downListener, false
+                );
+                window.addEventListener(
+                    "keyup", upListener, false
+                );
+                
+                // Detach event listeners
+                key.unsubscribe = () => {
+                    window.removeEventListener("keydown", downListener);
+                    window.removeEventListener("keyup", upListener);
+                };
+                
+                return key;
+            }
+        </script>
+      </body>
+  </html>
