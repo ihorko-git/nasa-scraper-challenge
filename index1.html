@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>NASA Space APPs Challenge - Space scrapers</title>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <script type="text/javascript" src="js/main.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <canvas id="canvas" width="1200" height="600"></canvas>
+<!-- <img src="images/ships/ship1.svg"> -->
+          </div>
+          <script>
+            // var ctx = getContext();
+            // var img = new Image();
+            
+            // img.width=80;
+            // img.height = 60;
+            // img.src = 'images/planetexpress80x60.png'
+            // img.onload = function () {
+            //     ctx.drawImage(img, 100, 10,  img.width,    img.height)
+            //     console.log( img.width,    img.height)
+            // }
+
+            var ship = new shipClass();
+
+            document.addEventListener("keydown", event => {
+                // console.log(event)
+
+                switch (event.key) {
+                    case "ArrowRight": 
+                    ship.direction++;
+                    break;
+                    case "ArrowLeft":
+                    ship.direction--;
+                    break;
+                    case "ArrowUp":
+                    ship.y--
+                    break;
+                    case "ArrowDown":
+                    ship.y++
+                    break;
+                }
+                clear();
+                ship.draw();
+                if (event.isComposing || event.keyCode === 229) {
+                    return;
+                }
+                // do something
+            });
+
+
+            var shipImage = loadSVG(ship.src);
+          </script>
+
+
+    </body>
+</html>

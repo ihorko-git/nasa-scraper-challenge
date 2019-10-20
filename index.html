@@ -1,59 +1,325 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>NASA Space APPs Challenge - Space scrapers</title>
-        <link rel="stylesheet" type="text/css" href="css/main.css">
-        <script type="text/javascript" src="js/main.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
-    </head>
-    <body>
-        <div class="container">
-            <canvas id="canvas" width="1200" height="600"></canvas>
-<!-- <img src="images/ships/ship1.svg"> -->
-          </div>
-          <script>
-            // var ctx = getContext();
-            // var img = new Image();
-            
-            // img.width=80;
-            // img.height = 60;
-            // img.src = 'images/planetexpress80x60.png'
-            // img.onload = function () {
-            //     ctx.drawImage(img, 100, 10,  img.width,    img.height)
-            //     console.log( img.width,    img.height)
+  <html>
+      <head>
+          <title>NASA Space APPs Challenge - Space scrapers</title>
+          <link rel="stylesheet" type="text/css" href="css/main.css">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+      </head>
+      <body>
+        <script type="text/javascript">
+            let type = "WebGL"
+            if(!PIXI.utils.isWebGLSupported()){
+              type = "canvas"
+            }
+        
+            PIXI.utils.sayHello(type)
+
+            //Create a Pixi Application
+            let app = new PIXI.Application({ 
+                width: 256,         // default: 800
+                height: 256,        // default: 600
+                antialias: true,    // default: false
+                transparent: false, // default: false
+                resolution: 1       // default: 1
+            }
+            );
+            app.renderer.autoResize = true;
+            app.renderer.view.style.position = "absolute";
+            app.renderer.view.style.display = "block";
+            app.renderer.autoResize = true;
+            app.renderer.resize(window.innerWidth, window.innerHeight);
+
+            /* Mouse interaction */
+            // const interactionManager = new PIXI.interaction.InteractionManager(app.renderer);
+            // interactionManager
+            //     .on('mousedown', onTouch)
+            //     .on('touchstart', onTouch)
+                // .on('mouseup', onTouch)
+                // .on('mouseupoutside', onTouch);
+
+            // function onTouch(e) {
+            //     app.renderer.plugins.interaction.mouse.global
             // }
+                
+            PIXI.loader
+                .add("images/ships/rocket1.svg")
+                .add("images/trash.svg")
+                .load(setup);
 
-            var ship = new shipClass();
+            function setup() {
+                ship = new PIXI.Sprite(PIXI.loader.resources["images/ships/rocket1.svg"].texture);
+                ship.x = 50
+                ship.y = 50
+                ship.anchor.set(0.5, 0.5)
+                ship.width = 64;
+                ship.height = 64;
 
-            document.addEventListener("keydown", event => {
-                // console.log(event)
+                // trash = new PIXI.Sprite(PIXI.loader.resources["images/trash.svg"].texture);
+                // trash.x = 240;
+                // trash.y = 240;
+                // trash.width = 48;
+                // trash.height = 48;
 
-                switch (event.key) {
-                    case "ArrowRight": 
-                    ship.direction++;
-                    break;
-                    case "ArrowLeft":
-                    ship.direction--;
-                    break;
-                    case "ArrowUp":
-                    ship.y--
-                    break;
-                    case "ArrowDown":
-                    ship.y++
-                    break;
+                score = 0;
+                distance = 0;
+
+                scoreMsg = new PIXI.Text("Score: " + score  + " | Distance: " + distance, {fontFamily : 'Arial', fontSize: 24, fill : 0xff1010, align : 'center'});
+                // scoreMsg.position.set(54, window.innerWidth - 200);
+                app.stage.addChild(scoreMsg);
+
+                trashCollection = [];
+                 trashCollection.push(createTrash());
+
+                // ship.rotation = 0.25 * Math.PI;
+                app.stage.addChild(ship);
+                // app.stage.addChild(trashCollection[0]);
+                speed = 0;
+
+                left = keyboard("ArrowLeft"),
+                up = keyboard("ArrowUp"),
+                right = keyboard("ArrowRight"),
+                down = keyboard("ArrowDown");
+
+                left.press = () => {
+                    //Change the cat's velocity when the key is pressed
+                    ship.angle--;
+                    // ship.vy = 0;
+                };
+                
+                //Left arrow key `release` method
+                left.release = () => {
+                    //If the left arrow has been released, and the right arrow isn't down,
+                    //and the cat isn't moving vertically:
+                    //Stop the cat
+                    if (!right.isDown && ship.vy === 0) {
+                        ship.vx = 0;
+                    }
+                };
+
+                //Up
+                up.press = () => {
+                    ship.vy = -5;
+                    ship.vx = 0;
+                };
+                up.release = () => {
+                    if (!down.isDown && ship.vx === 0) {
+                        ship.vy = 0;
+                    }
+                };
+
+                //Right
+                right.press = () => {
+                    ship.angle++
+                };
+                right.release = () => {
+                    if (!left.isDown && ship.vy === 0) {
+                        ship.vx = 0;
+                    }
+                };
+
+                //Down
+                down.press = () => {
+                    ship.vy = 5;
+                    ship.vx = 0;
+                };
+                down.release = () => {
+                    if (!up.isDown && ship.vx === 0) {
+                        ship.vy = 0;
+                    }
+                };
+                state = play;
+                app.ticker.add(delta => gameLoop(delta));
+            }
+
+            function gameLoop(delta){
+
+                //Move the cat 1 pixel 
+                
+                state(delta);
+            }
+
+            function createTrash() {
+                trash = new PIXI.Sprite(PIXI.loader.resources["images/trash.svg"].texture);
+                trash.x = Math.floor(Math.random() * (window.innerWidth - 75 - 75)) + 75;
+                //75 + Math.floor(Math.random() * Math.floor(window.innerWidth - 150));
+                trash.y = Math.floor(Math.random() * (window.innerHeight - 75 - 75)) + 75;
+                //75 + Math.floor(Math.random() * Math.floor(window.innerHeight - 150));
+                trash.width = 48;
+                trash.height = 48;
+                app.stage.addChild(trash)
+                return trash;
+            }
+
+            function play(delta) {
+                //Move the cat 1 pixel to the right each frame
+                ship.vx = 1
+                // ship.x += 1;
+                // let left = keyboard("ArrowLeft"),
+                //     up = keyboard("ArrowUp"),
+                //     right = keyboard("ArrowRight"),
+                //     down = keyboard("ArrowDown");
+                    // console.log(left)
+                if(right.isDown)
+                    ship.angle++
+                if(left.isDown)
+                    ship.angle--
+                if(up.isDown) {
+                    // console.log(speed)
+                    if( speed <= 10) speed+=0.25;
+                    // move(ship, speed)
+                } else {
+                    // if(speed > 0 )
+                        // speed -=0.25;
                 }
-                clear();
-                ship.draw();
-                if (event.isComposing || event.keyCode === 229) {
-                    return;
+
+                if(down.isDown) {
+                    // console.log(speed)
+                    if(speed > 0 ) speed-=0.25;
+                    // move(ship, speed)
                 }
-                // do something
-            });
+                distance += speed;
+                move(ship, speed)
+                updateMsg()
+                for (var i in trashCollection) {
+                    console.log(trashCollection[i]);
+                    if (hitTestRectangle(ship, trashCollection[i])) {
+                        score++;
+                        // console.log("hit!")
+                        app.stage.removeChild(trashCollection[i]);
+                        trashCollection.splice(i, 1) 
+                        trashCollection.push(createTrash());
+                        
+                    }                    
+                }
+
+                if (ship.x > window.innerWidth) {
+                    ship.x -= window.innerWidth
+                }
+                if (ship.x < 0) {
+                    ship.x = window.innerWidth
+                }
+                if (ship.y > window.innerHeight) {
+                    ship.y -= window.innerHeight
+                }
+                if (ship.y < 0) {
+                    ship.y += window.innerHeight
+                }
+                
+            }
+
+            // function move(obj) {
+
+            // }
+function updateMsg() {
+    scoreMsg.text = "Score: " + score + " | Distance: " + Math.ceil(distance)
+}
+
+            function hitTestRectangle(r1, r2) {
+
+//Define the variables we'll need to calculate
+let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
+
+//hit will determine whether there's a collision
+hit = false;
+
+//Find the center points of each sprite
+r1.centerX = r1.x + r1.width / 2;
+r1.centerY = r1.y + r1.height / 2;
+r2.centerX = r2.x + r2.width / 2;
+r2.centerY = r2.y + r2.height / 2;
+
+//Find the half-widths and half-heights of each sprite
+r1.halfWidth = r1.width / 2;
+r1.halfHeight = r1.height / 2;
+r2.halfWidth = r2.width / 2;
+r2.halfHeight = r2.height / 2;
+
+//Calculate the distance vector between the sprites
+vx = r1.centerX - r2.centerX;
+vy = r1.centerY - r2.centerY;
+
+//Figure out the combined half-widths and half-heights
+combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+
+//Check for a collision on the x axis
+if (Math.abs(vx) < combinedHalfWidths) {
+
+  //A collision might be occurring. Check for a collision on the y axis
+  if (Math.abs(vy) < combinedHalfHeights) {
+
+    //There's definitely a collision happening
+    hit = true;
+  } else {
+
+    //There's no collision on the y axis
+    hit = false;
+  }
+} else {
+
+  //There's no collision on the x axis
+  hit = false;
+}
+
+//`hit` will be either `true` or `false`
+return hit;
+};
+            function move(object, distance) {
+                object.x = object.x + distance * Math.cos(object.rotation - 0.25 * Math.PI);
+                object.y = object.y + distance * Math.sin(object.rotation - 0.25 * Math.PI);
+            }
+
+            //Add the canvas that Pixi automatically created for you to the HTML document
+            document.body.appendChild(app.view);
+            // document
 
 
-            var shipImage = loadSVG(ship.src);
-          </script>
+            function keyboard(value) {
+                let key = {};
+                key.value = value;
+                key.isDown = false;
+                key.isUp = true;
+                key.press = undefined;
+                key.release = undefined;
+                //The `downHandler`
+                key.downHandler = event => {
+                    if (event.key === key.value) {
+                    if (key.isUp && key.press) key.press();
+                    key.isDown = true;
+                    key.isUp = false;
+                    // event.preventDefault();
+                    }
+                };
 
+                //The `upHandler`
+                key.upHandler = event => {
+                    if (event.key === key.value) {
+                    if (key.isDown && key.release) key.release();
+                    key.isDown = false;
+                    key.isUp = true;
+                    // event.preventDefault();
+                    }
+                };
 
-    </body>
-</html>
+                //Attach event listeners
+                const downListener = key.downHandler.bind(key);
+                const upListener = key.upHandler.bind(key);
+                
+                window.addEventListener(
+                    "keydown", downListener, false
+                );
+                window.addEventListener(
+                    "keyup", upListener, false
+                );
+                
+                // Detach event listeners
+                key.unsubscribe = () => {
+                    window.removeEventListener("keydown", downListener);
+                    window.removeEventListener("keyup", upListener);
+                };
+                
+                return key;
+            }
+        </script>
+      </body>
+  </html>
